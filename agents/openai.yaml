@@ -1,0 +1,3 @@
+interface:
+  display_name: "Efficient Orchestrator"
+  short_description: "Delegate selectively with cost-aware models and verification"
