@@ -2,7 +2,7 @@
 
 A Codex skill for completing tasks with selective subagent delegation, appropriate models, and controlled coordination overhead.
 
-The main agent handles work directly by default. It delegates when a bounded assignment can reduce cost, shorten completion time, isolate distracting context, or improve quality enough to justify the handoff. Quality and the user's timing requirements take priority over resource savings.
+For nontrivial development, the main agent handles requirements, architecture, integration, and acceptance, and assigns substantive implementation to at least one Coder. Prefer a less expensive capable coding model when justified. Simple work stays local; explicit user instructions and concrete runtime or coordination constraints can justify an explained exception. Quality and the user's timing requirements take priority over resource savings.
 
 ## When to use it
 
@@ -52,7 +52,9 @@ Before starting a batch of new workers, the agent presents their assignments and
 
 In a client supporting inline visualizations and their documented follow-up callback, each planned subagent gets linked model and reasoning dropdowns. Defaults reflect the main agent's recommendations. Confirm once for the batch; the host may additionally ask you to confirm sending the selection. Execution begins only after the selection arrives in chat and passes validation.
 
-Newly required subagents appear in a fresh allocation form; unaffected confirmed workers keep their choices. Existing workers can continue the same assignment without another allocation. Unsupported clients use structured choice questions and explicit confirmation instead of nonfunctional dropdowns. A user may explicitly waive future allocation confirmations.
+The agent checks the available Visualize contract before choosing ordinary questions. If inline content is supported only in final replies, it presents the form and yields the turn for selection. The absence of a dedicated widget tool is not evidence that inline controls are unsupported. A fallback must identify a concrete capability limit or observed failure.
+
+Newly required subagents appear in a fresh allocation form; unaffected confirmed workers keep their choices. Existing workers can continue the same assignment without another allocation. Unsupported clients use structured choice questions and explicit confirmation. A user may explicitly waive future allocation confirmations.
 
 ### Allow automatic selection
 

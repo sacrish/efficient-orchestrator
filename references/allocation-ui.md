@@ -4,15 +4,25 @@ Read before presenting a new batch of subagents. Use a supported interactive for
 
 ## Host capability and fallback
 
-Use an inline form only when the current client can render it and exposes a documented callback that delivers the submitted choices as a user message. For the available Visualize runtime, read the `visualize` skill and use `window.openai.sendFollowUpMessage({prompt, title})`. The host may display its own send-confirmation dialog. Do not claim one click bypasses that dialog.
+Check the inline route before choosing structured questions. When the available `visualize` skill documents inline rendering and `window.openai.sendFollowUpMessage({prompt, title})`, read that skill and use the helper to build and present the form. The callback runs inside the rendered form; it need not appear in shell, browser automation, or tool schemas. A dedicated widget tool is not required. A file that has only been generated, opened in a browser, or linked in Markdown has not been presented inline.
+
+Follow the current Visualize output contract. If it requires a final response, emit the content reference below in that final response and yield the turn so the user can actually see and submit the form. Complete only useful non-overlapping preparation before yielding; do not finish the worker's implementation while its allocation remains invisible or pending. Replace the example path with the actual generated absolute path:
+
+```text
+visualize{"path":"/absolute/task-owned-path/allocation.html"}
+```
+
+The host may display its own send-confirmation dialog. Do not claim one click bypasses that dialog. Documentation establishes the intended submission mechanism; it does not prove that a particular rendered client has successfully sent a message.
 
 The form disables submission when the callback is absent. Widget state is draft UI state: saving it does not start a turn or approve execution. A resolved callback alone is not the orchestrator's approval signal; wait for the actual user message. Do not poll DOM state, call internal host APIs, or add a network server merely to collect selections.
 
-CLI, IDE, or other clients may lack inline rendering or the callback. Use available structured user-input questions with recommended options instead, collecting model and optional effort choices and an explicit batch confirmation. Do not promise native dropdown rendering there. A typed batch selection is also valid. Preserve the same validation and execution gates.
+CLI, IDE, or other clients may lack inline rendering or the callback. Fall back only when the inline skill/contract is absent, a governing constraint excludes it, no suitable writable output location exists, or an actual rendering/submission failure establishes the limit. Briefly tell the user which limit applies before using structured questions; never silently skip the inline route merely because questions are easier. Do not run a separate capability-probe widget when the documented route is available: present the real allocation form and let its existing callback guard handle an absent bridge. If submission is disabled or fails, accept the user's report and offer the fallback without polling or internal APIs.
+
+For fallback, use available structured user-input questions with recommended options, collecting model and optional effort choices and explicit batch confirmation. Do not promise native dropdown rendering there. A typed batch selection is also valid. Preserve the same identity, scope, and execution gates; map a complete explicit answer to the pending instances without asking for confirmation twice.
 
 ## Prepare and present a batch
 
-1. Decide the required workers and give every instance a unique ID, even when several share a role. Capture its task, scope, dependencies, and expected result in the pending plan. Do not list the existing main agent as a selectable subagent.
+1. Decide the required workers and give every instance a unique ID, even when several share a role. For nontrivial development, include at least one Coder owning substantive implementation unless a concrete exception from `SKILL.md` applies. Capture each task, scope, dependencies, and expected result in the pending plan. Do not list the existing main agent as a selectable subagent.
 2. Read the actual instance catalog and applicable runtime constraints. Include configured third-party routes unless explicitly excluded. Filter out explicitly ineligible choices; missing entries in descriptive tool examples are not exclusion evidence. Supply no secrets, credentials, endpoint headers, code dumps, or unrelated configuration to the form.
 3. Recommend a concrete model and supported effort per instance using role defaults, task complexity, and previous preferences. A model change rebuilds the effort list for that model and selects its recommendation or documented default. `null` effort means the user delegates effort selection; resolve it before spawning.
 4. Make a fresh batch ID and render the form to a durable task-owned visualization directory. Retain the snapshot path and an execution ledger in conversation context. If scope, agents, or offered identities change, supersede the old batch with a new one. Never overwrite a presented snapshot.

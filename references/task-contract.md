@@ -57,9 +57,10 @@ Role-specific evidence:
 | Task | Appropriate scheduling |
 | --- | --- |
 | One copy change in a known component | Edit and check locally; no subagent model question. |
-| A new visual experience with original art direction, substantial UI, or reactive motion | Explicitly assess Designer and prefer a bounded design/asset/UI assignment when it adds value. Keep independent implementation moving; explain briefly if substantial visual work stays local. |
+| A new visual experience with original art direction, substantial UI, or reactive motion | Include a Coder for substantive development and explicitly assess Designer for a useful design/asset/UI assignment. Agree interfaces and give the main agent integration and acceptance work. Explain any applicable local-execution exception. |
 | Two modules with agreed interfaces and disjoint files | Use two Coders if beneficial; the main agent owns integration files and final validation. |
-| A bounded routine implementation that is expensive on the parent model | Consider one cheaper reliable Coder if supported; include handoff, review, and latency in the decision even when execution is sequential. |
+| A bounded nontrivial implementation that is expensive on the parent model | Assign at least one Coder, preferring a cheaper reliable model when supported and justified; include handoff, review, and latency even when execution is sequential. |
+| A multi-level browser platformer with physics, scene mechanisms, and progress | Include a Coder owning the engine or another substantive implementation scope; assess Designer separately. The main agent defines interfaces, integrates, and accepts gameplay. |
 | Cross-module bug without a known entry point or reproduction | Handle immediate blockers locally. Assign an independent hypothesis to one Explorer if useful; do not have everyone scan the repository. |
 | Authorization-boundary change | Implement with Coder; use independent Reviewer assurance when valuable and Tester coverage of allowed/denied paths, respecting dependencies. |
 | Low-risk change with valid verification | Check the deliverable and finish; do not add roles for completeness. |

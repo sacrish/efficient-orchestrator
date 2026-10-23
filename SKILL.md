@@ -1,11 +1,11 @@
 ---
 name: efficient-orchestrator
-description: Coordinate tasks with cost-aware delegation, user-confirmed subagent model and reasoning allocations, and risk-proportionate verification. Use when bounded implementation, parallel work, focused exploration, or independent review can improve efficiency or quality. Handle simple tasks directly.
+description: Orchestrate development with Coder subagents for substantive implementation, cost-aware model choices, inline allocation controls where supported, and risk-proportionate verification. Use for nontrivial development, bounded parallel work, focused exploration, or independent review. Handle simple tasks directly.
 ---
 
 # Efficient Multi-Agent Orchestration
 
-Meet the user's quality and timing requirements while minimizing unnecessary total tokens, cost, waiting, and rework. The main agent is the default executor. Applying this skill authorizes bounded delegation within the current task; it does not expand permission to change files, perform external actions, or create commits.
+Meet the user's quality and timing requirements while minimizing unnecessary total tokens, cost, waiting, and rework. For nontrivial development, the main agent owns requirements, architecture, decomposition, integration, and acceptance; Coder subagents own substantive implementation. Prefer a less expensive capable Coder when the available evidence supports that choice. Applying this skill authorizes bounded delegation within the current task; it does not expand permission to change files, perform external actions, or create commits.
 
 Keep skill files in English. Communicate with the user in their preferred language unless they request otherwise.
 
@@ -13,11 +13,13 @@ Keep skill files in English. Communicate with the user in their preferred langua
 
 Use existing context and a little targeted inspection to establish the objective, acceptance criteria, dependencies, and the main agent's immediate next action before spawning.
 
-- Complete simple questions, localized edits, and work covered by one search or an existing command directly.
+- Complete simple questions, genuinely small localized edits, and work covered by one search or an existing command directly. A small edit has a known location, obvious behavior, and a straightforward check; file count alone does not establish simplicity.
+- For nontrivial development, plan and launch at least one Coder after the allocation gate, with ownership of a meaningful implementation deliverable. New games/apps, features with interacting behavior, and substantive refactors normally qualify. Delegate most routine implementation that can be bounded; keep difficult architectural decisions, integration, review, and targeted corrections with the main agent. A Designer, Explorer, Reviewer, or Tester alone does not satisfy the Coder requirement.
+- Keep implementation local only for a genuinely simple task, an explicit user request, unavailable delegation, or a concrete capability/coordination constraint that makes a useful Coder assignment impractical. Briefly state the actual exception before substantial local implementation. A single workstream, a preference to write code immediately, or pending model selection alone is not an exception. While selection is pending, continue requirements, interface design, or other non-overlapping work and preserve the Coder's scope.
 - Identify at least one substantial benefit: lower effective model cost, reduced latency through independent parallel work, isolation of distracting context, or independent assurance for a material risk. Compare it with startup, context transfer, coordination, waiting, integration, review, and likely retries.
 - Distinguish these benefits. A cheaper model can reduce cost even in sequential work if the runtime permits it and the handoff pays off. Parallel agents using the same model do not inherently reduce tokens or fees. Keep short, immediately blocking work local instead of handing it off and waiting.
 - Partition by independently verifiable responsibility. Keep closely related small edits together and reuse established findings rather than repeating repository-wide exploration.
-- Scale progressively: no agents without a clear benefit; one for a bounded workstream; two for independent workstreams; additional agents only when new evidence justifies them. Complexity and risk matter more than file count.
+- Scale progressively: start with one Coder for nontrivial development; use two for independent workstreams when useful. For other work, delegate only with a clear benefit. Add agents only when new evidence justifies them. Complexity and risk matter more than file count.
 
 A short internal rationale per delegation is sufficient. Do not produce a numeric budget or lengthy plan unless it helps the task.
 
@@ -34,7 +36,7 @@ Roles describe responsibilities, not necessarily built-in `agent_type` values. U
 | Reviewer | Correctness, code quality, and security risks relevant to the change | Read-only by default. Report actionable findings with evidence; do not manufacture issues or rewrite code. |
 | Tester | Test design, necessary test implementation, and regression checks | Specify whether test-file edits are allowed. Report commands, results, coverage, and gaps. |
 
-These roles are not a mandatory pipeline. Skip exploration when locations are known and handle small implementation and validation locally.
+These roles are not a mandatory pipeline. The nontrivial-development Coder requirement above still applies. Skip exploration when locations are known and handle small implementation and validation locally.
 
 ### Evaluate visual work before assigning implementation
 
@@ -54,7 +56,7 @@ Apply this gate only to a subagent about to be created. The main agent acting as
 
 Before delegation, read [Model and reasoning selection](references/model-selection.md). When preparing new workers, follow [Confirmed subagent allocation](references/allocation-ui.md). Retain role preferences, pending batches, and a per-instance execution ledger in the conversation.
 
-- Present the planned workers together before starting them. In a supported inline client, use one form listing each instance's role/task with linked model and reasoning dropdowns, preselected to concrete recommendations, and one confirmation action. Include configured third-party choices subject to explicit runtime restrictions. When the required host callback is unavailable, use structured choice questions and explicit batch confirmation rather than a nonfunctional form.
+- Present the planned workers together before starting them. Before choosing the presentation channel, read the allocation reference and check the available Visualize skill/output contract; do not infer unsupported rendering from the absence of a dedicated widget tool or a callback in shell/browser-tool schemas. In a supported inline client, build and present one form with linked model/effort dropdowns and concrete recommendations, including eligible configured third-party choices. Follow the host's output contract: when inline content is final-response-only, present it and yield that turn before continuing substantial implementation. Use structured questions only after establishing an inline capability limit or an actual failure, and briefly state the specific reason for fallback. Pending selection does not justify taking over a worker's implementation.
 - Launch only after the submitted choices are received as a user message and validated against the active batch, model identities, supported efforts, and current task scope. Draft UI state and a clicked button alone do not establish confirmation. New workers, including another instance of an existing role, require a fresh batch; reuse of an existing worker for the same confirmed assignment does not.
 - Resolve user model names against the instance catalog to real IDs and provider routes. Use a confidently unique match without a redundant confirmation; ask when versions, providers, or aliases leave multiple plausible matches, and never invent an ID.
 - A model missing from a tool description's advertised list is not automatically prohibited. When the schema accepts a model string and no explicit restriction excludes the user's configured choice, attempt its exact resolved ID through the normal subagent call. Follow the evidence-based compatibility procedure in the selection reference; do not demand a different model solely because the description omitted it.
