@@ -2,6 +2,8 @@
 
 Use when spawning. Adapt the brief to the actual task without copying every explanation. The main agent fills it in; do not ask the user for internal scheduling information.
 
+Each new worker must correspond to a validated confirmed instance in the [allocation protocol](allocation-ui.md). Map that instance to its runtime agent ID and preserve the execution ledger so repeated submissions cannot create duplicate workers. The form collects user choices; the task brief below remains the main agent's responsibility.
+
 ## Task brief
 
 ```text

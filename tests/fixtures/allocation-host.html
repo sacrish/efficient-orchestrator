@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Allocation callback test</title>
+  <style>
+    body { font: 14px system-ui; margin: 16px; }
+    .viz-controls { display: flex; flex-wrap: wrap; gap: 12px; }
+    .form-label { display: grid; gap: 4px; flex: 1 1 220px; min-width: 0; }
+    .form-select { min-width: 0; max-width: 100%; padding: 8px; }
+    .btn { padding: 8px 12px; }
+    #test-receipt { white-space: pre-wrap; overflow-wrap: anywhere; }
+  </style>
+  <script>
+    window.openai = {
+      widgetState: null,
+      async setWidgetState(state) { this.widgetState = state; },
+      async sendFollowUpMessage(request) {
+        document.getElementById("test-receipt").textContent = request.prompt;
+      }
+    };
+    if (location.search === "?no-submit") delete window.openai.sendFollowUpMessage;
+  </script>
+</head>
+<body>
+__FRAGMENT__
+<pre id="test-receipt" aria-label="Captured test submission" aria-live="polite"></pre>
+</body>
+</html>

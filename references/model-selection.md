@@ -33,11 +33,13 @@ A friendly name can legitimately differ from its ID: use the catalog mapping rat
 
 ## 3. Collect model and optional reasoning choices
 
-For a role without a model selection, use an available user-input tool, or ask in a reply if none is available. Offer a short set of relevant configured candidates plus automatic selection; identify verified versus unverified choices when it affects the decision. The user may name any other configured model. Offer optional reasoning effort in the same prompt, using model-specific supported values once the model is known. A full catalog is available on request, not required in every prompt.
+Use the [allocation UI protocol](allocation-ui.md) to collect model and effort choices for each planned worker instance in a confirmed batch. Prefer linked dropdowns in supported inline clients, preselect recommendations, and show eligible configured models without requiring typed IDs. Preserve role preferences as recommendation inputs; a confirmed per-instance choice applies to that assignment and does not silently rewrite a global role preference.
+
+For a client without a working inline submission channel, use available structured user-input questions, or ask in a reply. Offer relevant configured names and automatic selection, collect optional effort, and obtain explicit confirmation of the batch. Explain verified versus unverified choices only when it affects the decision. A submitted complete selection can itself confirm the batch; do not ask for the same confirmation twice.
 
 For a temporary role, first explain its specific purpose and why the predefined roles do not cover it. Obtain a choice for that particular role before launch, even when a general all-role automatic preference exists. An existing user instruction naming a model for that particular temporary role satisfies the gate. Offer supported models and the option to explicitly delegate selection to the agent. Do not reuse a different role's preference. Scope the record to the current task and preserve it for follow-ups and context compaction until that task ends.
 
-Example question structure:
+Fallback question structure:
 
 > This is the first use of Reviewer, to check this change's permission boundaries. Choose Automatic (recommended), candidate A, or candidate B, or name another configured model. Optionally specify a supported reasoning effort; otherwise I will choose it for this task.
 
@@ -49,7 +51,7 @@ Record model choice and effort choice independently. If the user answers with a 
 | --- | --- |
 | A specific model | `fixed`: honor it; do not silently replace it for cost reasons. |
 | "Automatic", "no preference", "you decide", or a valid submitted answer explicitly leaving the model unspecified | `auto`: select the model. |
-| An earlier all-role automatic instruction or an applicable role-specific choice | Treat a predefined role as selected. For a temporary role, require a choice explicitly covering that particular role. |
+| An earlier all-role automatic instruction or an applicable role-specific choice | Use it to seed recommendations. A new worker instance still requires batch confirmation unless the user explicitly waived it. For a temporary role, require a choice explicitly covering that role. |
 | No reply, an asynchronous question still pending, or an unsubmitted default | `pending`: do not launch that role; continue independent work. |
 | "Use a different model" without a replacement | Request a new selection with supported candidates and automatic selection. |
 | "Switch Coder to [model]" or "Make Coder automatic" | Update and verify the supplied choice without asking redundantly. |
@@ -79,7 +81,7 @@ Automatic selection requires a role-aware decision, not blanket inheritance of t
 
 For a temporary role, derive the same kind of preference from its specific deliverable after its user selection gate is satisfied. Prefer the least costly reliable capability level that meets acceptance; do not assume a specialized role always needs a flagship model.
 
-Difficulty may vary within one role. In `auto` mode, reselect for a new task without asking again, upgrading only for a concrete need. In `fixed` mode, explain an observed capability gap and request a replacement or automatic authorization, or let the main agent take over within its capabilities.
+Difficulty may vary within one role. Automatic preferences may produce new recommendations without a separate model-name question, but a new or changed assignment still follows the batch-confirmation gate. Honor the actual confirmed identity and effort during execution. For an observed capability gap, collect a replacement selection or specific automatic-recovery authorization rather than silently upgrading a confirmed assignment.
 
 ## 5. Resolve reasoning effort independently
 
@@ -104,10 +106,12 @@ After the role's model selection gate is satisfied:
 
 ## 7. Apply selections and retain their evidence
 
-This is a conceptual conversation record, not a runtime configuration file. Track only roles actually used; do not create disk state:
+This is a conceptual conversation record, not global runtime configuration. Track only used roles and actual worker instances. Task-owned allocation snapshots and receipts support confirmation; do not create long-term preference files:
 
 ```text
 role: Coder
+allocation_batch: confirmed batch ID
+allocation_instance: worker ID, distinct from its role
 model_mode: auto | fixed
 requested_model: exact user choice, or empty in auto mode
 resolved_model: actual model identifier for this call
@@ -132,7 +136,7 @@ evidence: brief runtime, official-source, and actual-call evidence
 | --- | --- |
 | A configured model is absent from descriptive tool examples or an official-model cache | Keep it unverified; apply the bounded-call procedure unless an explicit restriction excludes it. Do not request a replacement solely for this absence. |
 | A user-fixed model is excluded by an explicit constraint or an actual call establishes inaccessibility, retirement, or a clear model-unavailable error | Record the constraint or exact error, mark `needs_reselection`, and ask again. Do not replace that role's model before selection. |
-| An automatically chosen model is explicitly unavailable | Remove the candidate and reselect under the existing automatic authorization. If none remain, explain the limit and request a viable choice. |
+| An automatically recommended model is explicitly unavailable | Remove it from recommendations and propose a viable replacement. Changing a confirmed assignment requires confirmation or explicit recovery authorization; if no candidate remains, explain the limit. |
 | An ambiguous model name or provider route | Ask for the specific identity before launch; do not treat it as model unavailability. |
 | An unsupported reasoning level or parameter | Keep the selected model. Correct automatic settings within supported controls; ask before replacing or omitting a user-fixed effort. |
 | Authentication, rate limits, quota, network timeouts, tool/test failures, or poor output | Diagnose the specific cause rather than claiming a vendor/model whitelist restriction. Use bounded recovery, narrower scope, or local takeover. Temporary congestion must not cause repeated model-selection prompts. |

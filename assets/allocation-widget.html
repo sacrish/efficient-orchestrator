@@ -1,0 +1,187 @@
+<section id="__ROOT_ID__" aria-label="Subagent allocation">
+  <style>
+    #__ROOT_ID__ .allocation-list { display: grid; gap: 20px; margin-block: 16px; }
+    #__ROOT_ID__ .allocation-task { margin-block: 4px 8px; overflow-wrap: anywhere; }
+    #__ROOT_ID__ .allocation-role { font-weight: 500; overflow-wrap: anywhere; }
+    #__ROOT_ID__ .allocation-note { margin-block: 8px; }
+  </style>
+  <h3 data-title></h3>
+  <form data-form>
+    <div class="allocation-list" data-agents></div>
+    <div class="viz-row"><button type="submit" class="btn btn-primary" data-submit></button></div>
+    <p class="allocation-note text-muted" data-status aria-live="polite"></p>
+    <p class="allocation-note text-destructive" data-error role="alert" hidden></p>
+  </form>
+  <script type="application/json" data-plan>__ALLOCATION_DATA__</script>
+</section>
+<script>
+(() => {
+  const root = document.getElementById("__ROOT_ID__");
+  const plan = JSON.parse(root.querySelector("[data-plan]").textContent);
+  const labels = Object.assign({
+    model: "Model", effort: "Reasoning effort", automatic: "Automatic",
+    confirm: "Confirm allocation", confirmTitle: "Confirm subagent allocation",
+    submitting: "Confirm sending in the host dialog if prompted.",
+    sent: "Finish any host confirmation, then continue in the chat.",
+    cancelled: "Selection was not sent. You can confirm again.",
+    unavailable: "Interactive submission is unavailable here. Use the chat's choice prompts.",
+    failed: "Could not send the selection. Try again or use the chat's choice prompts."
+  }, plan.labels);
+  const form = root.querySelector("[data-form]");
+  const submit = root.querySelector("[data-submit]");
+  const status = root.querySelector("[data-status]");
+  const error = root.querySelector("[data-error]");
+  const models = new Map(plan.models.map(m => [m.key, m]));
+  const rows = new Map();
+  let busy = false, requested = false;
+  root.querySelector("[data-title]").textContent = plan.title;
+  root.setAttribute("aria-label", plan.title);
+  submit.textContent = labels.confirm;
+
+  function option(select, value, text) {
+    const node = document.createElement("option");
+    node.value = value;
+    node.textContent = text;
+    select.append(node);
+  }
+
+  function refreshEfforts(agent, row, saved) {
+    const model = models.get(row.model.value);
+    row.effort.replaceChildren();
+    option(row.effort, "", labels.automatic);
+    for (const effort of model.efforts) option(row.effort, effort, effort);
+    const recommended = Object.hasOwn(agent.effort_by_model, model.key)
+      ? agent.effort_by_model[model.key] : model.default_effort;
+    row.effort.value = saved !== undefined && (saved === null || model.efforts.includes(saved))
+      ? (saved ?? "") : (recommended ?? "");
+    row.effort.disabled = busy || model.efforts.length === 0;
+  }
+
+  function payload() {
+    return {
+      protocol: plan.protocol, batch_id: plan.batch_id,
+      fingerprint: plan.fingerprint, demo: plan.demo,
+      allocations: plan.agents.map(agent => {
+        const row = rows.get(agent.id);
+        const model = models.get(row.model.value);
+        return {agent_id: agent.id, role: agent.role, model_key: model.key,
+          model_id: model.id, provider_route: model.route,
+          reasoning_effort: row.effort.value || null};
+      })
+    };
+  }
+
+  function save() {
+    requested = false;
+    status.textContent = "";
+    const api = window.openai;
+    if (typeof api?.setWidgetState === "function" && JSON.stringify(payload()).length < 15000) {
+      try {
+        Promise.resolve(api.setWidgetState({modelContent: {allocationDraft: payload()}, privateContent: null})).catch(() => {});
+      } catch (_) { /* Draft persistence is optional. */ }
+    }
+  }
+
+  function restore(state) {
+    const draft = state?.modelContent?.allocationDraft;
+    if (!draft || draft.batch_id !== plan.batch_id || draft.fingerprint !== plan.fingerprint || !Array.isArray(draft.allocations)) return;
+    for (const agent of plan.agents) {
+      const saved = draft.allocations.find(a => a.agent_id === agent.id);
+      if (!saved || !models.has(saved.model_key)) continue;
+      const row = rows.get(agent.id);
+      row.model.value = saved.model_key;
+      refreshEfforts(agent, row, saved.reasoning_effort);
+    }
+  }
+
+  function availability() {
+    const available = typeof window.openai?.sendFollowUpMessage === "function";
+    submit.disabled = !available || busy;
+    if (!available) status.textContent = labels.unavailable;
+    else if (!busy && !requested) status.textContent = "";
+  }
+
+  function lock(value) {
+    busy = value;
+    for (const agent of plan.agents) {
+      const row = rows.get(agent.id);
+      row.model.disabled = busy;
+      row.effort.disabled = busy || models.get(row.model.value).efforts.length === 0;
+    }
+    availability();
+  }
+
+  const names = new Map();
+  for (const model of plan.models) names.set(model.label, (names.get(model.label) || 0) + 1);
+  for (const [index, agent] of plan.agents.entries()) {
+    const item = document.createElement("div");
+    const role = document.createElement("div");
+    role.className = "allocation-role";
+    role.textContent = agent.role;
+    const task = document.createElement("p");
+    task.className = "allocation-task";
+    task.textContent = agent.task;
+    const controls = document.createElement("div");
+    controls.className = "viz-controls";
+    const row = {};
+    for (const [field, label] of [["model", labels.model], ["effort", labels.effort]]) {
+      const wrapper = document.createElement("label");
+      wrapper.className = "form-label";
+      const text = document.createElement("span");
+      text.textContent = label;
+      const select = document.createElement("select");
+      select.className = "form-select";
+      select.name = agent.id + "." + field;
+      select.id = root.id + "-" + index + "-" + field;
+      select.setAttribute("aria-label", agent.role + " " + label);
+      wrapper.append(text, select);
+      controls.append(wrapper);
+      row[field] = select;
+    }
+    for (const model of plan.models) {
+      const name = names.get(model.label) > 1 ? model.label + " (" + model.route + ": " + model.id + ")" : model.label;
+      option(row.model, model.key, name);
+    }
+    row.model.value = agent.recommended_model;
+    rows.set(agent.id, row);
+    refreshEfforts(agent, row);
+    row.model.addEventListener("change", () => { refreshEfforts(agent, row); save(); });
+    row.effort.addEventListener("change", save);
+    item.append(role, task, controls);
+    root.querySelector("[data-agents]").append(item);
+  }
+  restore(window.openai?.widgetState);
+  window.addEventListener("openai:set_globals", event => {
+    if (!busy) restore(event.detail?.globals?.widgetState);
+    availability();
+  });
+  availability();
+  form.addEventListener("submit", async event => {
+    event.preventDefault();
+    if (busy || typeof window.openai?.sendFollowUpMessage !== "function") return;
+    error.hidden = true;
+    const selected = payload();
+    const instruction = plan.demo
+      ? "Allocation UI test only. Validate and summarize these choices; do not spawn any subagents."
+      : "Validate this selection against the pending allocation batch, then execute only its confirmed assignments. Follow the efficient-orchestrator allocation protocol.";
+    const prompt = instruction + "\n<efficient-orchestrator-allocation>\n" + JSON.stringify(selected) + "\n</efficient-orchestrator-allocation>";
+    lock(true);
+    status.textContent = labels.submitting;
+    try {
+      const result = await window.openai.sendFollowUpMessage({prompt, title: labels.confirmTitle});
+      if (result === false || result?.cancelled === true || result?.canceled === true) {
+        lock(false);
+        status.textContent = labels.cancelled;
+        return;
+      }
+      requested = true;
+      lock(false);
+      status.textContent = labels.sent;
+    } catch (_) {
+      lock(false);
+      error.hidden = false;
+      error.textContent = labels.failed;
+    }
+  });
+})();
+</script>

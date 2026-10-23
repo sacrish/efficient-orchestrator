@@ -22,12 +22,17 @@ efficient-orchestrator/
 |-- SKILL.md
 |-- agents/
 |   `-- openai.yaml
+|-- assets/
+|   `-- allocation-widget.html
+|-- scripts/
+|   `-- allocation_widget.py
 `-- references/
+    |-- allocation-ui.md
     |-- model-selection.md
     `-- task-contract.md
 ```
 
-You can copy this README alongside them for convenience. After updating an existing installation, ensure both reference files are updated with `SKILL.md`. If the skill does not appear immediately, refresh skill discovery or restart the client.
+You can copy this README alongside them for convenience. Update all listed resources together. The allocation helper uses Python 3's standard library. If the skill does not appear immediately, refresh skill discovery or restart the client.
 
 The skill uses the host's subagent tools and configured model catalog. Configure provider access in Codex or its model gateway before selecting a third-party model.
 
@@ -41,7 +46,13 @@ trend charts, and export. Delegate only where it improves efficiency
 or quality, and verify the completed workflow.
 ```
 
-Before the first delegation of each role, the agent offers model choices and an optional reasoning effort. You can also provide preferences with the initial request.
+Before starting a batch of new workers, the agent presents their assignments and recommended model/effort choices for confirmation. You can also provide preferences with the initial request; these seed recommendations rather than automatically approving new instances.
+
+### Allocation controls
+
+In a client supporting inline visualizations and their documented follow-up callback, each planned subagent gets linked model and reasoning dropdowns. Defaults reflect the main agent's recommendations. Confirm once for the batch; the host may additionally ask you to confirm sending the selection. Execution begins only after the selection arrives in chat and passes validation.
+
+Newly required subagents appear in a fresh allocation form; unaffected confirmed workers keep their choices. Existing workers can continue the same assignment without another allocation. Unsupported clients use structured choice questions and explicit confirmation instead of nonfunctional dropdowns. A user may explicitly waive future allocation confirmations.
 
 ### Allow automatic selection
 
@@ -113,5 +124,8 @@ Parallel execution can shorten elapsed time while increasing total tokens. Lower
 | --- | --- |
 | [SKILL.md](SKILL.md) | Skill entry point and delegation, role, scheduling, and acceptance rules. |
 | [references/model-selection.md](references/model-selection.md) | Model identity resolution, role preferences, reasoning selection, compatibility checks, and recovery. |
+| [references/allocation-ui.md](references/allocation-ui.md) | Confirmed allocation batches, supported host callbacks, fallback questions, and response validation. |
+| [scripts/allocation_widget.py](scripts/allocation_widget.py) | Builds forms from the instance catalog and validates confirmed selections with duplicate-submission receipts. |
+| [assets/allocation-widget.html](assets/allocation-widget.html) | Linked model/effort controls with recommended defaults and explicit submission. |
 | [references/task-contract.md](references/task-contract.md) | Minimal assignment and completion-report formats, evidence requirements, and partitioning examples. |
 | [agents/openai.yaml](agents/openai.yaml) | Display metadata for Codex. |
