@@ -1,9 +1,13 @@
 ---
 name: efficient-orchestrator
-description: Orchestrate development with Coder subagents for substantive implementation, cost-aware model choices, inline allocation controls where supported, and risk-proportionate verification. Use for nontrivial development, bounded parallel work, focused exploration, or independent review. Handle simple tasks directly.
+description: Orchestrate development with Coder subagents, cost-aware model choices, inline allocation controls, and risk-proportionate verification. Use only when the user explicitly invokes $efficient-orchestrator or asks to use this skill by name.
 ---
 
 # Efficient Multi-Agent Orchestration
+
+## Activation
+
+Activate only when the user explicitly invokes `$efficient-orchestrator` or asks to use this skill by name. The invocation applies to the requested task and its related follow-ups. A request to inspect or edit the skill itself is maintenance, not an invocation of its orchestration workflow. Without an explicit invocation, do not run this skill's delegation assessment, role evaluation, or allocation flow. Apply the workflow below only after activation.
 
 Meet the user's quality and timing requirements while minimizing unnecessary total tokens, cost, waiting, and rework. For nontrivial development, the main agent owns requirements, architecture, decomposition, integration, and acceptance; Coder subagents own substantive implementation. Prefer a less expensive capable Coder when the available evidence supports that choice. Applying this skill authorizes bounded delegation within the current task; it does not expand permission to change files, perform external actions, or create commits.
 

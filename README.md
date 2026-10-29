@@ -2,9 +2,13 @@
 
 A Codex skill for completing tasks with selective subagent delegation, appropriate models, and controlled coordination overhead.
 
-For nontrivial development, the main agent handles requirements, architecture, integration, and acceptance, and assigns substantive implementation to at least one Coder. Prefer a less expensive capable coding model when justified. Simple work stays local; explicit user instructions and concrete runtime or coordination constraints can justify an explained exception. Quality and the user's timing requirements take priority over resource savings.
+Once explicitly invoked, for nontrivial development the main agent handles requirements, architecture, integration, and acceptance, and assigns substantive implementation to at least one Coder. Prefer a less expensive capable coding model when justified. Simple work stays local; explicit user instructions and concrete runtime or coordination constraints can justify an explained exception. Quality and the user's timing requirements take priority over resource savings.
 
 ## When to use it
+
+This skill is opt-in. Invoke `$efficient-orchestrator` or ask to use it by name for the task and its related follow-ups. `agents/openai.yaml` sets `policy.allow_implicit_invocation: false`. Delegation assessment, role evaluation, and allocation begin only after explicit invocation. Requests to inspect or edit the skill itself are maintenance and do not activate orchestration.
+
+Invoke it when you want to:
 
 - Develop features with independent implementation workstreams.
 - Investigate a large codebase through focused searches.
